@@ -1,0 +1,196 @@
+using System;
+
+namespace ConsoleApplication2
+{
+
+    public interface IIntegerList
+    {
+        /// <summary>
+        /// Adds an item to the collection.
+        /// </summary>
+        void Add(int item);
+        /// <summary>
+        /// Removes the first occurrence of an item from the collection.
+        /// If the item was not found, method does nothing.
+        /// </summary>
+        bool Remove(int item);
+        /// <summary>
+        /// Removes the item at the given index in the collection.
+        /// </summary>
+        bool RemoveAt(int index);
+        /// <summary>
+        /// Returns the item at the given index in the collection.
+        /// </summary>
+        int GetElement(int index);
+        /// <summary>
+        /// Returns the index of the item in the collection.
+        /// If item is not found in the collection, method returns -1.
+        /// </summary>
+        int IndexOf(int item);
+        /// <summary>
+        /// Readonly property. Gets the number of items contained in the collection.
+        /// </summary>
+        int Count { get; }
+        /// <summary>
+        /// Removes all items from the collection.
+        /// </summary>
+        void Clear();
+        /// <summary>
+        /// Determines whether the collection contains a specific value.
+        /// </summary>
+        bool Contains(int item);
+    }
+
+    public class IntegerList : IIntegerList
+    {
+
+        private int p = 0;
+
+        private int[] secondaryList;
+
+        public int[] _internalStorage;
+
+        public IntegerList(int initialSize)
+        {
+            _internalStorage = new int[initialSize];
+        }
+
+        public IntegerList()
+        {
+            _internalStorage = new int[4];
+        }
+
+
+        public void Add(int item)
+        {
+
+            if ((p + 1) > _internalStorage.Length)
+            {
+                secondaryList = new int[2 * _internalStorage.Length];
+                for (int i = 0; i < p; i++)
+                {
+                    secondaryList[i] = _internalStorage[i];
+                }
+                secondaryList[p] = item;
+                _internalStorage = secondaryList;
+                secondaryList = null;
+            }
+
+            else
+            {
+                _internalStorage[p] = item;
+            }
+
+            p++;
+        }
+
+        public bool RemoveAt(int index)
+        {
+            if (index > p)
+            {
+                return false;
+            }
+            for (int i = index; i < (p - 1); i++)
+            {
+                _internalStorage[i] = _internalStorage[i + 1];
+            }
+            p--;
+            return true;
+        }
+
+        public bool Remove(int item)
+        {
+            for (int i = 0; i <= p; i++)
+            {
+                if (_internalStorage[i] == item)
+                {
+                    return RemoveAt(i);
+                }
+            }
+            return false;
+        }
+
+        public int GetElement(int index)
+        {
+            if (index < p)
+            {
+                return _internalStorage[index];
+            }
+            else
+            {
+                throw new System.IndexOutOfRangeException();
+            }
+        }
+
+        public int IndexOf(int item)
+        {
+            for(int i=0; i< p; i++)
+            {
+                if (_internalStorage[i] == item)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public int Count
+        {
+            get
+            {
+                return p;
+            }
+        }
+
+        public void Clear()
+        {
+            int i = _internalStorage.Length;
+            _internalStorage = null;
+            _internalStorage = new int[i];
+            p = 0;
+        }
+
+        public bool Contains(int item)
+        {
+            for(int i=0; i< p; i++)
+            {
+                if (_internalStorage[i] == item)
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            IntegerList listOfIntegers = new IntegerList();
+            listOfIntegers.Add(1);
+            listOfIntegers.Add(2);
+            listOfIntegers.Add(3);
+            listOfIntegers.Add(4);
+            listOfIntegers.Add(5);
+            // lista je [1,2,3,4,5]
+            // Mičemo prvi element liste.
+            listOfIntegers.RemoveAt(0);
+            // Lista je [2,3,4,5]
+            // Mičemo element liste čija je vrijednost "5".
+            listOfIntegers.Remove(5);
+            // Lista je [2,3,4]
+            Console.WriteLine(listOfIntegers.Count);
+            // 3
+            Console.WriteLine(listOfIntegers.Remove(100));
+            // false, nemamo element u vrijednosti 100
+            Console.WriteLine(listOfIntegers.RemoveAt(5));
+            // false, nemamo ništa na poziciji 5
+            // Brišemo sav sadržaj kolekcije
+            listOfIntegers.Clear();
+            Console.WriteLine(listOfIntegers.Count);
+            // 0
+            Console.ReadLine();
+
+        }
+    }
+}
