@@ -1,0 +1,258 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace ConsoleApplication4
+{
+    public class GenericListEnumerator<X> : IEnumerator<X>
+    {
+
+        IGenericList<X> _collection;
+        int n = 0;
+
+        public GenericListEnumerator(IGenericList<X> collection)
+        {
+            _collection = collection;
+        }
+        public bool MoveNext()
+        {
+            if (n < _collection.Count)
+            {
+                n++;
+                return true;
+            }
+            return false;
+
+            // Zove se prije svake iteracije.
+            // Vratite true ako treba ući u iteraciju, false ako ne
+            // Hint: čuvajte neko globalno stanje po kojem pratite gdje se
+            // nalazimo u kolekciji
+        }
+        public X Current
+        {
+            get
+            {
+                return _collection.GetElement(n - 1);
+                // Zove se na svakom ulasku u iteraciju
+                // Hint: Koristite stanje postavljeno u MoveNext() dijelu
+                // kako bi odredili što se zapravo vraća u ovom koraku
+            }
+        }
+        object IEnumerator.Current
+        {
+            get { return Current; }
+        }
+        public void Dispose()
+        {
+            // Ignorirajte
+        }
+        public void Reset()
+        {
+            // Ignorirajte
+        }
+    }
+
+    public interface IGenericList<X> : IEnumerable<X>
+    {
+        /// <summary>
+        /// Adds an item to the collection.
+        /// </summary>
+        void Add(X item);
+        /// <summary>
+        /// Removes the first occurrence of an item from the collection.
+        /// If the item was not found, method does nothing.
+        /// </summary>
+        bool Remove(X item);
+        /// <summary>
+        /// Removes the item at the given index in the collection.
+        /// </summary>
+        bool RemoveAt(int index);
+        /// <summary>
+        /// Returns the item at the given index in the collection.
+        /// </summary>
+        X GetElement(int index);
+        /// <summary>
+        /// Returns the index of the item in the collection.
+        /// If item is not found in the collection, method returns -1.
+        /// </summary>
+        int IndexOf(X item);
+        /// <summary>
+        /// Readonly property. Gets the number of items contained in the collection.
+        /// </summary>
+        int Count { get; }
+        /// <summary>
+        /// Removes all items from the collection.
+        /// </summary>
+        void Clear();
+        /// <summary>
+        /// Determines whether the collection contains a specific value.
+        /// </summary>
+        bool Contains(X item);
+        ///<summary>
+        ///foreach GetEnumerator 
+        /// </summary>
+    }
+
+    public class GenericList<X> : IGenericList<X>
+    {
+
+        private int p = 0;
+
+        private X[] secondaryList;
+
+        public X[] _internalStorage;
+
+        public GenericList(int initialSize)
+        {
+            _internalStorage = new X[initialSize];
+        }
+
+        public GenericList()
+        {
+            _internalStorage = new X[4];
+        }
+
+
+        public void Add(X item)
+        {
+
+            if ((p + 1) > _internalStorage.Length)
+            {
+                secondaryList = new X[2 * _internalStorage.Length];
+                for (int i = 0; i < p; i++)
+                {
+                    secondaryList[i] = _internalStorage[i];
+                }
+                secondaryList[p] = item;
+                _internalStorage = secondaryList;
+                secondaryList = null;
+            }
+
+            else
+            {
+                _internalStorage[p] = item;
+            }
+
+            p++;
+        }
+
+        public bool RemoveAt(int index)
+        {
+            if (index > p)
+            {
+                return false;
+            }
+            for (int i = index; i < (p - 1); i++)
+            {
+                _internalStorage[i] = _internalStorage[i + 1];
+            }
+            p--;
+            return true;
+        }
+
+        public bool Remove(X item)
+        {
+            for (int i = 0; i <= p; i++)
+            {
+                if (_internalStorage[i].Equals(item))
+                {
+                    return RemoveAt(i);
+                }
+            }
+            return false;
+        }
+
+        public X GetElement(int index)
+        {
+            if (index < p)
+            {
+                return _internalStorage[index];
+            }
+            else
+            {
+                throw new System.IndexOutOfRangeException();
+            }
+        }
+
+        public int IndexOf(X item)
+        {
+            for (int i = 0; i < p; i++)
+            {
+                if (_internalStorage[i].Equals(item))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public int Count
+        {
+            get
+            {
+                return p;
+            }
+        }
+
+        public void Clear()
+        {
+            int i = _internalStorage.Length;
+            _internalStorage = null;
+            _internalStorage = new X[i];
+            p = 0;
+        }
+
+        public bool Contains(X item)
+        {
+            for (int i = 0; i < p; i++)
+            {
+                if (_internalStorage[i].Equals(item))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public IEnumerator<X> GetEnumerator()
+        {
+            return new GenericListEnumerator<X>(this);
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+    }
+
+
+
+
+    class Program
+    {
+        static void Main()
+        {
+            IGenericList<string> stringList = new GenericList<string>();
+            stringList.Add("Hello");
+            stringList.Add("World");
+            stringList.Add("!");
+            stringList.Add("Luka");
+            stringList.Add("je");
+            stringList.Add("valjda");
+            stringList.Add("uspio.");
+            foreach (string value in stringList)
+            {
+                Console.WriteLine(value);
+            }
+            Console.WriteLine(stringList.Count); // 3
+            Console.WriteLine(stringList.Contains("Hello")); // true
+            Console.WriteLine(stringList.IndexOf("Hello")); // 0
+            Console.WriteLine(stringList.GetElement(1)); // World
+            IGenericList<double> doubleList = new GenericList<double>();
+            doubleList.Add(0.2);
+            doubleList.Add(0.7);
+
+            Console.ReadLine();
+
+        }
+    }
+}
